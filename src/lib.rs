@@ -79,7 +79,7 @@ fn round(x: f32) -> f32 {
 /// assert_eq!((516276, 173141), convert(-0.32824866, 51.44533267));
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern fn convert(input_lon: f32, input_lat: f32) -> (i32, i32) {
+pub extern fn convert_bng(input_lon: f32, input_lat: f32) -> (i32, i32) {
     // match is restricted to the UK bounding box
     match input_lon {
         -6.379880...1.768960 => input_lon,
@@ -196,7 +196,7 @@ pub extern fn convert_vec_c(lon: Array, lat: Array) -> Array {
     .into_iter()).collect();
     // carry out the conversion 
     let result: Vec<(i32, i32)> = orig.iter()
-        .map(|elem| convert(elem.0, elem.1))
+        .map(|elem| convert_bng(elem.0, elem.1))
         .collect();
     // convert back to vector of unsigned integer Tuples
     let nvec = result.iter()
@@ -233,7 +233,7 @@ pub extern fn convert_vec_c_threaded(lon: Array, lat: Array) -> Array {
         let chunk = chunk.to_owned();
         let g = thread::spawn(move || chunk
             .into_iter()
-            .map(|elem| convert(elem.0, elem.1))
+            .map(|elem| convert_bng(elem.0, elem.1))
             .collect());
         guards.push(g);
     }
@@ -250,7 +250,7 @@ pub extern fn convert_vec_c_threaded(lon: Array, lat: Array) -> Array {
 
 #[cfg(test)]
 mod tests {
-    use super::convert;
+    use super::convert_bng;
     use super::convert_vec_c;
     use super::convert_vec_c_threaded;
     use super::Array;
@@ -362,18 +362,18 @@ mod tests {
     #[test]
     fn test_conversion() {
         // verified to be correct at http://www.bgs.ac.uk/data/webservices/convertForm.cfm
-        assert_eq!((516276, 173141), convert(-0.32824866, 51.44533267));
+        assert_eq!((516276, 173141), convert_bng(-0.32824866, 51.44533267));
     }
 
     #[test]
     #[should_panic]
     fn test_bad_lon() {
-        assert_eq!((516276, 173141), convert(181., 51.44533267));
+        assert_eq!((516276, 173141), convert_bng(181., 51.44533267));
     }
 
     #[test]
     #[should_panic]
     fn test_bad_lat() {
-        assert_eq!((516276, 173141), convert(-0.32824866, -90.01));
+        assert_eq!((516276, 173141), convert_bng(-0.32824866, -90.01));
     }
 }
